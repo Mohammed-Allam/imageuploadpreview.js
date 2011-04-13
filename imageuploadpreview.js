@@ -1,9 +1,10 @@
 /**
  * @fileoverview
  * JavaScript Image Upload Preview.
- * Tested and compatible with IE6, IE7, IE8, Firefox 3.
+ * Tested and compatible with IE6, 7, 8 and 9; Firefox 3 and 4; Chrome; Safari.
  *
  * @author Hedger Wang (hedgerwang@gmail.com)
+ * @author Julio Monteiro (julio@monteiro.eti.br)
  *
  */
 
