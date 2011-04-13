@@ -12,9 +12,10 @@
  * @param {HTMLInputElement|String} input
  * @param {Function?} opt_onSuccess
  * @param {Function?} opt_onFail
+ * @param {HTMLInputElement|String} image
  */
-function ImageUploadPreview(input, opt_onSuccess, opt_onFail) {
-  this.construct(input, opt_onSuccess, opt_onFail);
+function ImageUploadPreview(input, opt_onSuccess, opt_onFail, image) {
+  this.construct(input, opt_onSuccess, opt_onFail, image);
 }
 
 /**
@@ -91,19 +92,26 @@ ImageUploadPreview.prototype.maxHeight_ = 200;
  * @param {HTMLInputElement|String} input
  * @param {Function?} opt_onSuccess
  * @param {Function?} opt_onFail 
+ * @param {HTMLInputElement|String} image
  * @public
  */
 ImageUploadPreview.prototype.construct =
-function(input, opt_onSuccess, opt_onFail) {
+function(input, opt_onSuccess, opt_onFail, image) {
   if (typeof input == 'string') {
     input = document.getElementById(input);
+  }
+  if (typeof image == 'string') {
+    image = document.getElementById(image);
+  }
+  if (typeof image == 'undefined') {
+    image = this.createImage_();
   }
 
   this.onPreviewFailHandler_ = opt_onFail;
   this.onPreviewSuccessHandler_ = opt_onSuccess;
   this.input_ = input;
   this.bindEvents_();
-  this.image_ = this.createImage_();
+  this.image_ = image;
 };
 
 
@@ -427,7 +435,3 @@ function(opt_onload, opt_onerror) {
   img.src = el.value;
 
 };
-
-
-
-
