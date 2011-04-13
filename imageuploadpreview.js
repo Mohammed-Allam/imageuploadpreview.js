@@ -266,17 +266,15 @@ ImageUploadPreview.prototype.showEmptyImage_ = function() {
  * @param {number} h
  */
 ImageUploadPreview.prototype.showImage_ = function(src, w, h) {
-
-  if (w > h) {
-    if (w > this.maxWidth_) {
-      h = h * this.maxWidth_ / w;
-      w = this.maxWidth_;
-    }
-  } else {
-    if (h > this.maxHeight_) {
-      w = w * this.maxHeight_ / h;
-      h = this.maxHeight_;
-    }
+  var perfect_ratio = parseFloat(this.maxWidth_) / parseFloat(this.maxHeight_);
+  var ratio = parseFloat(w) / parseFloat(h);
+  if(w > this.maxHeight_ && ratio >= perfect_ratio) {
+    w = this.maxWidth_;
+    h = this.maxWidth_ / ratio;
+  }
+  else if(h > this.maxHeight_ && ratio <= perfect_ratio) {
+    w = this.maxHeight_ * ratio;
+    h = this.maxHeight_;
   }
 
   var img = this.image_;
