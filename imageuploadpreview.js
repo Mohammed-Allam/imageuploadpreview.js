@@ -2,7 +2,7 @@
  * @fileoverview
  * JavaScript Image Upload Preview.
  * Tested and compatible with IE6, IE7, IE8, Firefox 3.
- * 
+ *
  * @author Hedger Wang (hedgerwang@gmail.com)
  *
  */
@@ -91,7 +91,7 @@ ImageUploadPreview.prototype.maxHeight_ = 200;
 /**
  * @param {HTMLInputElement|String} input
  * @param {Function?} opt_onSuccess
- * @param {Function?} opt_onFail 
+ * @param {Function?} opt_onFail
  * @param {HTMLInputElement|String} image
  * @public
  */
@@ -157,6 +157,7 @@ ImageUploadPreview.prototype.preview = function() {
 
   var loadMethods = [
     this.maybeShowImageWithDataUri_,
+    this.maybeShowImageWithFileReader_,
     this.maybeShowImageByPath_
   ];
 
@@ -352,6 +353,60 @@ function(opt_onload, opt_onerror) {
   }
 };
 
+/**
+ * Using FileReader object.
+ * See {@link http://www.html5rocks.com/tutorials/file/dndfiles/}.
+ * @private
+ * @param {Function?} opt_onload
+ * @param {Function?} opt_onerror
+ */
+ImageUploadPreview.prototype.maybeShowImageWithFileReader_ =
+function(opt_onload, opt_onerror) {
+  var el = this.input_;
+  var file = el.files && el.files[0];
+  var src;
+  var fileName = el.value;
+  var reader;
+
+  // Check if we can access the serialized file via getAsDataURL().
+  if ((window.FileReader) &&
+      (reader = new window.FileReader()) &&
+      (reader && reader.readAsDataURL) &&
+      (src = reader.readAsDataURL(file)) &&
+      (ImageUploadPreview.BASE64_IMG_URL_PATTERN.test(src))) {
+
+    var that = this;
+    var img = this.image_;
+
+    if ('naturalWidth' in this.image_) {
+      // Firefox has naturalWidth.
+      this.image_.src = src;
+
+      setTimeout(function() {
+        that.showImage_(src, img.naturalWidth, img.naturalHeight);
+        that.maybeCallFunction_(opt_onload, {
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+          fileName : fileName,
+          fileSize: el.files[0].fileSize
+        });
+      }, 10);
+
+    } else {
+      // Use default CSS max-width / max-height to render the size.
+      that.showImage_(src, -1, -1);
+
+      this.maybeCallFunction_(opt_onload, {
+        fileName : fileName,
+        width: img.offsetWidth,
+        height: img.offsetHeight,
+        fileSize: el.files[0].fileSize
+      });
+    }
+  } else {
+    this.maybeCallFunction_(opt_onerror, fileName);
+  }
+};
 
 /**
  * Note: IE6 ~ IE8 can access image with local path. By 6/1/2009.
@@ -362,7 +417,6 @@ function(opt_onload, opt_onerror) {
  */
 ImageUploadPreview.prototype.maybeShowImageByPath_ =
 function(opt_onload, opt_onerror) {
-
   var that = this;
   var el = this.input_;
   var img = new Image();
