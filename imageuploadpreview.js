@@ -157,8 +157,8 @@ ImageUploadPreview.prototype.preview = function() {
   };
 
   var loadMethods = [
-    this.maybeShowImageWithDataUri_,
     this.maybeShowImageWithFileReader_,
+    this.maybeShowImageWithDataUri_,
     this.maybeShowImageByPath_
   ];
 
@@ -369,41 +369,42 @@ function(opt_onload, opt_onerror) {
   var fileName = el.value;
   var reader;
 
-  // Check if we can access the serialized file via getAsDataURL().
   if ((window.FileReader) &&
       (reader = new window.FileReader()) &&
-      (reader && reader.readAsDataURL) &&
-      (src = reader.readAsDataURL(file)) &&
-      (ImageUploadPreview.BASE64_IMG_URL_PATTERN.test(src))) {
+      (reader && reader.readAsDataURL)) {
 
-    var that = this;
-    var img = this.image_;
+    reader.onload = (function(that, opt_onload, fileName, el) {
+      return function(fileAsDataURL) {
+        var src = fileAsDataURL.target.result;
+        var img = that.image_;
 
-    if ('naturalWidth' in this.image_) {
-      // Firefox has naturalWidth.
-      this.image_.src = src;
+        if ('naturalWidth' in img) {
+          img.src = src;
 
-      setTimeout(function() {
-        that.showImage_(src, img.naturalWidth, img.naturalHeight);
-        that.maybeCallFunction_(opt_onload, {
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-          fileName : fileName,
-          fileSize: el.files[0].fileSize
-        });
-      }, 10);
+          setTimeout(function() {
+            that.showImage_(src, img.naturalWidth, img.naturalHeight);
+            that.maybeCallFunction_(opt_onload, {
+              width: img.naturalWidth,
+              height: img.naturalHeight,
+              fileName : fileName,
+              fileSize: el.files[0].fileSize
+            });
+          }, 10);
+        } else {
+          // Use default CSS max-width / max-height to render the size.
+          that.showImage_(src, -1, -1);
 
-    } else {
-      // Use default CSS max-width / max-height to render the size.
-      that.showImage_(src, -1, -1);
+          that.maybeCallFunction_(opt_onload, {
+            fileName : fileName,
+            width: img.offsetWidth,
+            height: img.offsetHeight,
+            fileSize: el.files[0].fileSize
+          });
+        }
+      };
+    })(this, opt_onload, fileName, el);
 
-      this.maybeCallFunction_(opt_onload, {
-        fileName : fileName,
-        width: img.offsetWidth,
-        height: img.offsetHeight,
-        fileSize: el.files[0].fileSize
-      });
-    }
+    reader.readAsDataURL(file);
   } else {
     this.maybeCallFunction_(opt_onerror, fileName);
   }
